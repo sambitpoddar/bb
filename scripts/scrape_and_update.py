@@ -24,13 +24,13 @@ import requests
 from bs4 import BeautifulSoup
 from cerebras.cloud.sdk import Cerebras
 
-# ─── Config ───────────────────────────────────────────────────────────────
+# ─── Config ────────────────────────────────────────────────────────────────
 BASE_URL       = "https://brahmaputraboard.gov.in"
 OUTPUT_FILE    = "data/faqs.json"
 MODEL          = "gpt-oss-120b"          # Cerebras free tier model
-MAX_PAGES      = 60                        # safety cap on pages to crawl
+MAX_PAGES      = 100                        # safety cap on pages to crawl
 MIN_TEXT_LEN   = 120                       # skip pages with too little text
-REQUEST_DELAY  = 3.0                       # seconds between HTTP requests (increased)
+REQUEST_DELAY  = 1.5                       # seconds between HTTP requests
 SIMILARITY_THR = 0.52                      # Jaccard threshold for dedup
 CEREBRAS_KEY   = os.environ["CEREBRAS_API_KEY"]
 
@@ -41,32 +41,25 @@ log = logging.getLogger(__name__)
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (compatible; BrahmaputraBoardBot/1.0; "
-        "+https://github.com/brahmaputra-board/chatbot)"
+        "+https://github.com/sambitpoddar/bb)"
     )
 }
 
-# Create a session for connection pooling
-session = requests.Session()
-session.headers.update(HEADERS)
-
-def safe_get(url: str, timeout: int = 30, max_retries: int = 5) -> requests.Response | None:
-    """GET with retry on transient errors with exponential backoff."""
-    for attempt in range(max_retries):
+def safe_get(url: str, timeout: int = 18) -> requests.Response | None:
+    """GET with retry on transient errors."""
+    for attempt in range(3):
         try:
-            r = session.get(url, timeout=timeout)
+            r = requests.get(url, headers=HEADERS, timeout=timeout)
             if r.status_code == 200:
                 return r
             log.warning("HTTP %s → %s", r.status_code, url)
             return None
         except requests.RequestException as exc:
-            wait_time = (2 ** attempt) + (attempt * 2)  # exponential backoff + jitter
-            log.warning("Attempt %d/%d failed for %s: %s (waiting %ds)", 
-                       attempt + 1, max_retries, url, type(exc).__name__, wait_time)
-            if attempt < max_retries - 1:  # don't sleep on last attempt
-                time.sleep(wait_time)
+            log.warning("Attempt %d failed for %s: %s", attempt + 1, url, exc)
+            time.sleep(2 ** attempt)
     return None
 
-# ─── Crawler ───────────────────────────────────────────────────────────────
+# ─── Crawler ────────────────────────────────────────────────────────────────
 def crawl(base: str, max_pages: int) -> dict[str, str]:
     """
     BFS crawl of the site.
@@ -137,7 +130,8 @@ def crawl(base: str, max_pages: int) -> dict[str, str]:
 # ─── Cerebras AI extraction ──────────────────────────────────────────────────
 client = Cerebras(api_key=CEREBRAS_KEY)
 
-EXTRACT_PROMPT = """You are an information extraction assistant for the Brahmaputra Board,
+EXTRACT_PROMPT = """\
+You are an information extraction assistant for the Brahmaputra Board,
 a Government of India statutory body under the Ministry of Jal Shakti.
 
 From the webpage text below, extract FAQ pairs that would be genuinely useful
@@ -156,15 +150,16 @@ Rules:
 
 Example format:
 [
-  {{
+  {
     "question": "What is the contact email of the Brahmaputra Board?",
     "answer": "The official email is secy-bbrd[at]gov[dot]in. You can also reach them at bbrd-ghy[at]nic[dot]in."
-  }}
+  }
 ]
 
 Webpage text:
-
+\"\"\"
 {text}
+\"\"\"
 """
 
 def extract_faqs_from_text(url: str, text: str) -> list[dict]:
@@ -214,7 +209,7 @@ def extract_faqs_from_text(url: str, text: str) -> list[dict]:
         log.warning("Cerebras error for %s: %s", url, exc)
         return []
 
-# ─── Deduplication ───────────────────────────────────────────────────────────
+# ─── Deduplication ──────────────────────────────────────────────────────────
 def tokenize(text: str) -> set[str]:
     """Lowercase word tokens, stripping punctuation."""
     return set(re.findall(r"[a-z0-9]+", text.lower()))
@@ -272,7 +267,7 @@ def deduplicate(existing: list[dict], candidates: list[dict]) -> tuple[list[dict
 
 # ─── Main ───────────────────────────────────────────────────────────────────
 def main():
-    log.info("═��═ Brahmaputra Board FAQ Updater — %s ═══",
+    log.info("═══ Brahmaputra Board FAQ Updater — %s ═══",
              datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))
 
     # Load existing FAQs
