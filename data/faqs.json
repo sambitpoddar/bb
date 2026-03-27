@@ -1,0 +1,301 @@
+{
+  "meta": {
+    "last_updated": "2026-03-27T00:00:00+00:00",
+    "total_faqs": 40,
+    "pages_scraped": 0,
+    "added_this_run": 40,
+    "skipped_this_run": 0,
+    "source_site": "https://brahmaputraboard.gov.in",
+    "generator": "seed/manual",
+    "note": "Seed file — will be auto-expanded nightly by GitHub Actions"
+  },
+  "faqs": [
+    {
+      "id": "a1b2c3d4e5f6",
+      "question": "What is the Brahmaputra Board?",
+      "answer": "The Brahmaputra Board is a statutory authority established under the Brahmaputra Board Act, 1980 (Act 46 of 1980) by the Government of India. It has been operational since 11 January 1982 and functions under the Ministry of Jal Shakti. Its headquarters is at Basistha, Guwahati – 781029, Assam, with a Coordination Office in New Delhi.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "b2c3d4e5f6a1",
+      "question": "When was the Brahmaputra Board established?",
+      "answer": "The Brahmaputra Board was established under the Brahmaputra Board Act, 1980 (Act 46 of 1980) and became operational on 11 January 1982.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "c3d4e5f6a1b2",
+      "question": "Under which ministry does the Brahmaputra Board function?",
+      "answer": "The Brahmaputra Board functions under the Ministry of Jal Shakti, Government of India. The ministry was formed in 2019 by merging the Ministry of Water Resources with the Ministry of Drinking Water and Sanitation.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "d4e5f6a1b2c3",
+      "question": "What is the address and contact number of the Brahmaputra Board?",
+      "answer": "Headquarters: Brahmaputra Board, Basistha, Guwahati – 781029, Assam. Phone: 0361-2300128. Fax: 0361-2308588. Email: secy-bbrd[at]gov[dot]in and bbrd-ghy[at]nic[dot]in.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "e5f6a1b2c3d4",
+      "question": "What is the official website of the Brahmaputra Board?",
+      "answer": "The official website of the Brahmaputra Board is https://brahmaputraboard.gov.in. You can find tenders, annual reports, RTI information, project updates, and contact details there.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "f6a1b2c3d4e5",
+      "question": "What is the jurisdiction of the Brahmaputra Board?",
+      "answer": "The Board's jurisdiction covers the Brahmaputra Valley and Barak Valley, spanning all 7 North-Eastern States (Assam, Arunachal Pradesh, Meghalaya, Manipur, Mizoram, Nagaland, Tripura), Sikkim, and the northern parts of West Bengal that fall under the Brahmaputra Basin. It also handles inter-state and international rivers of the NE region.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "a2b3c4d5e6f7",
+      "question": "What are the main functions of the Brahmaputra Board?",
+      "answer": "The Board's main functions include: (1) flood control and bank erosion management, (2) surveys and Master Plan preparation, (3) preparation of Detailed Project Reports (DPRs), (4) hydrological data collection and analysis, (5) assisting NE state governments on flood schemes, and (6) development of irrigation, hydro power, and navigation projects in the Brahmaputra and Barak basins.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "b3c4d5e6f7a2",
+      "question": "What flood control measures does the Brahmaputra Board undertake?",
+      "answer": "The Board undertakes flood control through: preparation of the Master Plan for Flood Control, construction of embankments and spurs, implementation of PSC Porcupine Dampeners at locations like Salmara and Majuli, anti-erosion works across NE states, hydraulic model studies for river structures, and close coordination with state governments during flood season.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "c4d5e6f7a2b3",
+      "question": "What is NEHARI?",
+      "answer": "NEHARI (North East Hydraulic and Allied Research Institute) is the research arm of the Brahmaputra Board, located at Rudreswar, North Guwahati. It was established under Clause 7 of the Assam Accord, 1985, and became operational in 1996. It conducts hydraulic model studies, material and soil testing, foundation rock testing, and training programs.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "d5e6f7a2b3c4",
+      "question": "Where is NEHARI located?",
+      "answer": "NEHARI (North East Hydraulic and Allied Research Institute) is located at Rudreswar, North Guwahati, Assam. It was set up under the Brahmaputra Board as per Clause 7 of the Assam Accord, 1985.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "e6f7a2b3c4d5",
+      "question": "How many members does the Brahmaputra Board have?",
+      "answer": "The Brahmaputra Board has 21 Members — 4 full-time and 17 part-time. Members represent all 7 NE states, the North-Eastern Council (NEC), Central Water Commission (CWC), Geological Survey of India (GSI), India Meteorological Department (IMD), Central Electricity Authority (CEA), and key central ministries.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "f7a2b3c4d5e6",
+      "question": "How do I file an RTI with the Brahmaputra Board?",
+      "answer": "To file an RTI: address your application to the designated Public Information Officer (PIO), Brahmaputra Board, Basistha, Guwahati – 781029. The prescribed fee is ₹10. You can also use the online RTI portal at https://rtionline.gov.in. The list of PIOs and Appellate Authorities is published on the official website brahmaputraboard.gov.in.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "a3b4c5d6e7f8",
+      "question": "How to apply for tenders from the Brahmaputra Board?",
+      "answer": "All tenders are published as Notice Inviting Tenders (NITs) on the official website brahmaputraboard.gov.in under the Tenders section. Recent tenders cover anti-erosion works, PSC Porcupine Dampener construction, and DPR preparation. Contact: Superintending Engineer (W), Brahmaputra Board, Guwahati.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "b4c5d6e7f8a3",
+      "question": "What are the ongoing projects of the Brahmaputra Board?",
+      "answer": "Ongoing projects include: PSC Porcupine Dampeners at Salmara and Majuli Island (Assam), anti-erosion works on Dollung River and Lipu/Liru rivers in Arunachal Pradesh, and DPR preparation for Chitelui River (Kolasib), Tuiphai River (Serchip), and Tuipui River (Champhai) in Mizoram. Hydraulic model studies for river bridges are also ongoing through NEHARI.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "c5d6e7f8a3b4",
+      "question": "What is the Master Plan prepared by the Brahmaputra Board?",
+      "answer": "The Brahmaputra Board has prepared a comprehensive Master Plan for Flood Control and Drainage Development for the Brahmaputra and Barak Valleys. It identifies flood-prone areas, prioritises embankment and anti-erosion works, proposes multi-purpose projects (irrigation, power, navigation), and outlines long-term drainage improvement schemes. It is updated periodically in consultation with state governments.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "d6e7f8a3b4c5",
+      "question": "How to submit a grievance to the Brahmaputra Board?",
+      "answer": "Submit grievances in writing to the Secretary (Grievance Officer), Brahmaputra Board, Basistha, Guwahati – 781029. The Grievance Committee includes the Superintending Engineer (W), Chief Vigilance Officer, and Accounts Officer. You may also use the CPGRAMS online portal at https://pgportal.gov.in.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "e7f8a3b4c5d6",
+      "question": "Who is the Web Information Manager of the Brahmaputra Board?",
+      "answer": "The Web Information Manager is Shri Nitya Chetia. Contact: Phone 0361-2302527, Email: wnb-bbrd[at]gov[dot]in.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "f8a3b4c5d6e7",
+      "question": "What is the Brahmaputra River?",
+      "answer": "The Brahmaputra is one of Asia's great rivers, originating in the Tibetan Plateau as the Yarlung Tsangpo. It flows through China, then enters India through Arunachal Pradesh (as Siang/Dihang), flows through Assam as the Brahmaputra, and enters Bangladesh as the Jamuna. Its total length is ~2,900 km (~918 km in India). It is one of the world's most flood-prone and bank-eroding rivers.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "a4b5c6d7e8f9",
+      "question": "What is the Barak River?",
+      "answer": "The Barak River flows through southern Assam, Manipur, and Mizoram and is the main river of the Barak Valley. Like the Brahmaputra, the Barak Valley falls under the jurisdiction of the Brahmaputra Board for flood control and water resource planning.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "b5c6d7e8f9a4",
+      "question": "What is Majuli Island and why is it significant for the Brahmaputra Board?",
+      "answer": "Majuli is the world's largest river island, located in the Brahmaputra River in Assam. It faces severe annual erosion by the Brahmaputra, making it a major focus area for the Board's anti-erosion interventions, including PSC Porcupine Dampener construction and bank protection works.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "c6d7e8f9a4b5",
+      "question": "What are PSC Porcupine Dampeners?",
+      "answer": "PSC (Pre-Stressed Concrete) Porcupine Dampeners are structural elements placed in river beds to reduce water velocity and protect river banks from erosion. The Brahmaputra Board has implemented these at Salmara and Majuli in Assam to combat severe bank erosion by the Brahmaputra.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "d7e8f9a4b5c6",
+      "question": "What hydrological data does the Brahmaputra Board collect?",
+      "answer": "The Board collects river gauge and discharge data across the Brahmaputra and Barak basins, flood forecasting data in coordination with the Central Water Commission (CWC), sediment transport and morphological survey data, and rainfall and runoff analysis. For data requests, contact secy-bbrd[at]gov[dot]in or call 0361-2300128.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "e8f9a4b5c6d7",
+      "question": "What publications does the Brahmaputra Board release?",
+      "answer": "The Brahmaputra Board publishes Annual Reports, Master Plan documents, technical reports and DPRs, and hydrological data compilations. These are available on the official website brahmaputraboard.gov.in. For physical copies, call 0361-2300128.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "f9a4b5c6d7e8",
+      "question": "What is the vision of the Brahmaputra Board?",
+      "answer": "The Board's vision is integrated flood and river basin management involving domain experts, state-of-the-art technology, and close coordination with state governments.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "a5b6c7d8e9f0",
+      "question": "What is the mission of the Brahmaputra Board?",
+      "answer": "The mission is the regulation and development of the inter-state Brahmaputra and Barak River Valley for optimal water resource utilisation, with emphasis on flood management and bank erosion control.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "b6c7d8e9f0a5",
+      "question": "Does the Brahmaputra Board have a Women's Harassment Committee?",
+      "answer": "Yes. The Brahmaputra Board has a Women's Harassment Committee as required by law. It is chaired by Mrs. Jalee Bezbaruah, EE(HQ). The Board also follows the Rights of Persons with Disabilities (RPwD) Act, 2016 for disability provisions.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "c7d8e9f0a5b6",
+      "question": "What is the Assam Accord and its connection to NEHARI?",
+      "answer": "The Assam Accord, signed in 1985, was an agreement between the Government of India and leaders of the Assam movement. Clause 7 of the Accord mandated the establishment of a hydraulic research institute in Assam. NEHARI (North East Hydraulic and Allied Research Institute) was set up by the Brahmaputra Board to fulfil this commitment and became operational in 1996.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "d8e9f0a5b6c7",
+      "question": "What are the anti-erosion projects of the Brahmaputra Board in Arunachal Pradesh?",
+      "answer": "In Arunachal Pradesh, the Board is implementing anti-erosion works on the Dollung River and bank protection works on the Lipu and Liru rivers in the Lower Siang district.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "e9f0a5b6c7d8",
+      "question": "What projects is the Brahmaputra Board doing in Mizoram?",
+      "answer": "In Mizoram, the Brahmaputra Board is preparing Detailed Project Reports (DPRs) for three rivers: Chitelui River in Kolasib district, Tuiphai River in Serchip district, and Tuipui River in Champhai district.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "f0a5b6c7d8e9",
+      "question": "What organisations are represented in the Brahmaputra Board?",
+      "answer": "The Board's 21 members represent: all 7 NE states, the North-Eastern Council (NEC), Central Water Commission (CWC), Geological Survey of India (GSI), India Meteorological Department (IMD), Central Electricity Authority (CEA), and the Ministries of Jal Shakti, Agriculture, Finance, and Power & Surface Transport. Special invitees include representatives from DoNER, Sikkim, West Bengal, and the Planning Commission.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "a6b7c8d9e0f1",
+      "question": "What does CWPRS stand for and what is its connection to NEHARI?",
+      "answer": "CWPRS stands for Central Water and Power Research Station, located in Pune. NEHARI staff are deputed there (and to CSMRS, New Delhi) for advanced technical training in hydraulics and water resource engineering as part of NEHARI's ongoing rejuvenation programme.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "b7c8d9e0f1a6",
+      "question": "What is the role of the Brahmaputra Board in inter-state water disputes?",
+      "answer": "The Brahmaputra Board plays a coordination role in the planning and regulation of inter-state rivers within the Brahmaputra and Barak basins. As a central statutory body, it facilitates data sharing and joint planning between NE state governments and the central government for flood control and water resource development.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "c8d9e0f1a6b7",
+      "question": "What is the Central Water Commission and how does it relate to the Brahmaputra Board?",
+      "answer": "The Central Water Commission (CWC) is the apex technical organisation under the Ministry of Jal Shakti for water resource management in India. A CWC representative is a member of the Brahmaputra Board, and both bodies coordinate closely on flood forecasting, hydrological data, and water resource development in the NE region.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "d9e0f1a6b7c8",
+      "question": "Can I visit the Brahmaputra Board office in person?",
+      "answer": "Yes. The Brahmaputra Board headquarters is located at Basistha, Guwahati – 781029, Assam. Office hours are standard government working hours (Monday to Friday). You can call 0361-2300128 before visiting to confirm appointments.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "e0f1a6b7c8d9",
+      "question": "What is the Brahmaputra Board's role in navigation development?",
+      "answer": "Navigation development is one of the mandated activities of the Brahmaputra Board under the Brahmaputra Board Act. The Board includes navigation in its multi-purpose project planning for the Brahmaputra and Barak Valleys, alongside irrigation and hydro power development.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "f1a6b7c8d9e0",
+      "question": "What is a Detailed Project Report (DPR)?",
+      "answer": "A Detailed Project Report (DPR) is a comprehensive engineering and financial document prepared before implementing any infrastructure project. The Brahmaputra Board prepares DPRs for flood control, anti-erosion, irrigation, and multi-purpose river valley projects across the North-East, which are then used for administrative approvals and funding.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "a7b8c9d0e1f2",
+      "question": "Does the Brahmaputra Board deal with international rivers?",
+      "answer": "Yes. The Brahmaputra originates in China (as Yarlung Tsangpo), flows through Bhutan's vicinity, and continues to Bangladesh. The Barak basin borders Myanmar. The Brahmaputra Board handles planning for inter-state and international aspects of these rivers within its statutory mandate.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "b8c9d0e1f2a7",
+      "question": "How can I access annual reports of the Brahmaputra Board?",
+      "answer": "Annual reports of the Brahmaputra Board are available on the official website at https://brahmaputraboard.gov.in. For physical copies, contact the headquarters at 0361-2300128 or email secy-bbrd[at]gov[dot]in.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "c9d0e1f2a7b8",
+      "question": "What is the Brahmaputra Board's coordination office in New Delhi?",
+      "answer": "The Brahmaputra Board maintains a Coordination Office in New Delhi for liaison with central ministries, the Planning Commission, and other national bodies. The primary headquarters remains at Basistha, Guwahati.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "d0e1f2a7b8c9",
+      "question": "What is the Brahmaputra Board Act, 1980?",
+      "answer": "The Brahmaputra Board Act, 1980 (Act 46 of 1980) is the legislation enacted by the Parliament of India that established the Brahmaputra Board. It defines the Board's composition, mandate, powers, and functions for flood control and water resource development in the Brahmaputra and Barak basins.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    },
+    {
+      "id": "e1f2a7b8c9d0",
+      "question": "What is the North-Eastern Council (NEC) and its role with the Brahmaputra Board?",
+      "answer": "The North-Eastern Council (NEC) is an apex-level body for economic and social development of the North-East. A NEC representative is a part-time member of the Brahmaputra Board, ensuring coordination between the Board's water resource activities and the broader regional development agenda.",
+      "source": "seed",
+      "added_at": "2026-03-27T00:00:00+00:00"
+    }
+  ]
+}

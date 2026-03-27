@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brahmaputra Board – AI Assistant</title>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  BRAHMAPUTRA BOARD CHATBOT WIDGET                               ║
+  ║  • 100% free — no API keys, no server costs                     ║
+  ║  • Reads from GitHub-hosted faqs.json (auto-updated nightly)    ║
+  ║  • Pure HTML / CSS / JS — zero dependencies                     ║
+  ║                                                                  ║
+  ║  HOW TO EMBED:                                                   ║
+  ║  1. Set FAQS_URL below to your GitHub raw faqs.json URL         ║
+  ║  2. Paste <style> into your site's <head>                        ║
+  ║  3. Paste <div id="bb-widget"> before </body>                    ║
+  ║  4. Paste <script> just before </body>                           ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+<style>
+/* ════════════════════════════════════════════════════
+   WIDGET CSS — copy into <head>
+   ════════════════════════════════════════════════════ */
+:root{
+  --bb-accent:#0071e3;--bb-accent-d:#0058c3;
+  --bb-surface:rgba(252,252,253,.91);--bb-border:rgba(0,0,0,.08);
+  --bb-text:#1d1d1f;--bb-sub:#6e6e73;
+  --bb-user:#0071e3;--bb-bot:rgba(242,242,247,.97);
+  --bb-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+  --bb-shadow:0 14px 50px rgba(0,0,0,.16),0 2px 8px rgba(0,0,0,.08);
+  --bb-w:378px;--bb-h:574px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--bb-font);background:#f2f2f7;color:var(--bb-text);min-height:100vh}
+
+/* Demo page wrapper — remove when embedding */
+.demo{max-width:800px;margin:0 auto;padding:56px 24px 180px}
+.demo-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,113,227,.08);border:1px solid rgba(0,113,227,.18);border-radius:20px;padding:4px 13px;font-size:11px;font-weight:600;color:#0071e3;letter-spacing:.07em;text-transform:uppercase;margin-bottom:24px}
+.demo-badge b{width:6px;height:6px;background:#30d158;border-radius:50%;display:inline-block}
+.demo-hd{display:flex;align-items:center;gap:14px;margin-bottom:36px}
+.demo-logo{width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,#0071e3,#00c7be);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,113,227,.28);flex-shrink:0}
+.demo-org{font-size:11px;font-weight:500;color:var(--bb-sub);letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px}
+.demo-name{font-size:21px;font-weight:700;letter-spacing:-.4px}
+.card{background:#fff;border-radius:18px;padding:34px;box-shadow:0 2px 12px rgba(0,0,0,.05);margin-bottom:16px}
+.card h2{font-size:19px;font-weight:700;letter-spacing:-.3px;margin-bottom:9px}
+.card p{font-size:14px;line-height:1.72;color:#424245}
+.card p+p{margin-top:8px}
+.pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;background:#f2f2f7;color:var(--bb-sub);border:1px solid rgba(0,0,0,.07)}
+code{background:#f2f2f7;padding:2px 6px;border-radius:5px;font-size:12px}
+
+/* ── Toggle button ── */
+#bb-btn{position:fixed;bottom:26px;right:26px;width:62px;height:62px;border-radius:50%;background:linear-gradient(150deg,#1a8cff,#0050c4);border:none;cursor:pointer;z-index:10000;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,113,227,.44),0 1px 4px rgba(0,0,0,.1);transition:transform .28s cubic-bezier(.34,1.56,.64,1),box-shadow .25s;outline:none;-webkit-tap-highlight-color:transparent;overflow:hidden}
+#bb-btn::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 36% 28%,rgba(255,255,255,.22),transparent 62%)}
+#bb-btn:hover{transform:scale(1.1);box-shadow:0 8px 28px rgba(0,113,227,.56)}
+#bb-btn:active{transform:scale(.91)}
+.bic{position:absolute;transition:opacity .22s,transform .28s cubic-bezier(.34,1.56,.64,1)}
+.bic-close{opacity:0;transform:rotate(-80deg) scale(.6)}
+#bb-btn.open .bic-chat{opacity:0;transform:rotate(80deg) scale(.6)}
+#bb-btn.open .bic-close{opacity:1;transform:rotate(0) scale(1)}
+#bb-dot{position:absolute;top:8px;right:8px;width:10px;height:10px;background:#ff3b30;border-radius:50%;border:2.5px solid #fff;animation:dotpop .4s cubic-bezier(.34,1.56,.64,1) 1s both;transition:opacity .2s,transform .2s}
+@keyframes dotpop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+#bb-btn.open #bb-dot{opacity:0;transform:scale(0)}
+
+/* ── Chat panel ── */
+#bb-panel{position:fixed;bottom:100px;right:26px;width:var(--bb-w);height:var(--bb-h);background:var(--bb-surface);-webkit-backdrop-filter:saturate(200%) blur(48px);backdrop-filter:saturate(200%) blur(48px);border:1px solid var(--bb-border);border-radius:22px;box-shadow:var(--bb-shadow);z-index:9999;display:flex;flex-direction:column;overflow:hidden;transform:translateY(24px) scale(.95);opacity:0;pointer-events:none;transition:transform .38s cubic-bezier(.34,1.25,.64,1),opacity .25s}
+#bb-panel.open{transform:none;opacity:1;pointer-events:all}
+
+/* Header */
+#bb-hd{display:flex;align-items:center;gap:10px;padding:14px 15px 12px;background:rgba(255,255,255,.7);border-bottom:1px solid rgba(0,0,0,.06);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);flex-shrink:0}
+.hav{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#0071e3,#00c7be);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#bb-hi{flex:1;min-width:0}
+#bb-hn{font-size:13.5px;font-weight:600;color:var(--bb-text);letter-spacing:-.1px}
+#bb-hs{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--bb-sub);margin-top:1px}
+.sdot{width:6px;height:6px;background:#30d158;border-radius:50%;animation:pulse 2.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* Last-updated badge in header */
+#bb-updated{font-size:10px;color:#aeaeb2;margin-top:1px;display:none}
+
+#bb-clr{width:28px;height:28px;border:none;cursor:pointer;border-radius:50%;background:rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;transition:background .15s;outline:none;flex-shrink:0}
+#bb-clr:hover{background:rgba(0,0,0,.1)}
+
+/* Suggestions */
+#bb-sq{display:flex;gap:6px;padding:8px 11px 7px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;border-bottom:1px solid rgba(0,0,0,.05)}
+#bb-sq::-webkit-scrollbar{display:none}
+.sq{white-space:nowrap;padding:5px 12px;background:rgba(0,113,227,.07);border:1px solid rgba(0,113,227,.16);border-radius:20px;font-size:11.5px;font-weight:500;color:#0071e3;cursor:pointer;font-family:var(--bb-font);flex-shrink:0;transition:background .15s,transform .12s}
+.sq:hover{background:rgba(0,113,227,.14);transform:translateY(-1px)}
+.sq:active{transform:scale(.96)}
+
+/* Messages */
+#bb-msgs{flex:1;overflow-y:auto;padding:13px 11px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+#bb-msgs::-webkit-scrollbar{width:3px}
+#bb-msgs::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:4px}
+
+/* Loading state */
+#bb-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;padding:20px}
+.bb-spinner{width:28px;height:28px;border:2.5px solid rgba(0,113,227,.15);border-top-color:#0071e3;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#bb-loading p{font-size:12.5px;color:var(--bb-sub);text-align:center}
+
+/* Error state */
+#bb-err{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;padding:20px;text-align:center}
+#bb-err p{font-size:13px;color:var(--bb-sub)}
+#bb-retry{padding:8px 20px;background:var(--bb-accent);color:#fff;border:none;border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;font-family:var(--bb-font)}
+#bb-retry:hover{background:var(--bb-accent-d)}
+
+/* Welcome */
+#bb-wl{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;flex:1;padding:18px;gap:9px;min-height:150px}
+.wico{width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,#0071e3,#00c7be);display:flex;align-items:center;justify-content:center;box-shadow:0 5px 16px rgba(0,113,227,.28);margin-bottom:2px}
+#bb-wl h3{font-size:15px;font-weight:600;letter-spacing:-.2px}
+#bb-wl p{font-size:12.5px;color:var(--bb-sub);line-height:1.55;max-width:235px}
+
+/* Bubbles */
+.br{display:flex;align-items:flex-end;gap:7px;animation:brin .28s cubic-bezier(.34,1.3,.64,1) both}
+@keyframes brin{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.br.user{flex-direction:row-reverse}
+.rav{width:24px;height:24px;border-radius:50%;flex-shrink:0;margin-bottom:2px;background:linear-gradient(135deg,#0071e3,#00c7be);display:flex;align-items:center;justify-content:center}
+.bb{max-width:83%;padding:9px 13px;border-radius:16px;font-size:13.5px;line-height:1.57;font-family:var(--bb-font);word-break:break-word}
+.br.bot .bb{background:var(--bb-bot);color:var(--bb-text);border-bottom-left-radius:4px;border:1px solid rgba(0,0,0,.07)}
+.br.user .bb{background:var(--bb-user);color:#fff;border-bottom-right-radius:4px}
+.bb strong{font-weight:600}
+.bb ul{padding-left:16px;margin:4px 0}
+.bb li{margin-bottom:3px}
+.bb a{color:#0071e3;text-decoration:underline}
+.br.user .bb a{color:rgba(255,255,255,.85)}
+.bb .src{display:block;margin-top:6px;font-size:10.5px;color:#aeaeb2}
+.bb .src a{color:#aeaeb2}
+
+/* Typing */
+.ty{display:flex;align-items:center;gap:4px;padding:11px 14px;background:var(--bb-bot);border:1px solid rgba(0,0,0,.07);border-radius:16px;border-bottom-left-radius:4px;max-width:60px}
+.ty span{width:5px;height:5px;background:#bbb;border-radius:50%;animation:tdot 1.1s ease-in-out infinite}
+.ty span:nth-child(2){animation-delay:.18s}
+.ty span:nth-child(3){animation-delay:.36s}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-5px);opacity:1}}
+
+/* Input */
+#bb-ft{padding:10px 11px 12px;flex-shrink:0;border-top:1px solid rgba(0,0,0,.06);background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+#bb-ir{display:flex;align-items:flex-end;gap:7px;background:rgba(118,118,128,.09);border:1.5px solid rgba(0,0,0,.09);border-radius:22px;padding:5px 5px 5px 12px;transition:border-color .2s,box-shadow .2s}
+#bb-ir:focus-within{border-color:rgba(0,113,227,.45);box-shadow:0 0 0 3px rgba(0,113,227,.1)}
+#bb-in{flex:1;border:none;background:transparent;font-family:var(--bb-font);font-size:13.5px;color:var(--bb-text);resize:none;outline:none;max-height:94px;min-height:22px;line-height:1.5;padding:3px 0}
+#bb-in::placeholder{color:#aeaeb2}
+#bb-snd{width:32px;height:32px;border-radius:50%;border:none;background:var(--bb-accent);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .15s;outline:none}
+#bb-snd:hover{background:var(--bb-accent-d);transform:scale(1.06)}
+#bb-snd:active{transform:scale(.92)}
+#bb-snd:disabled{background:#d1d1d6;cursor:not-allowed;transform:none}
+#bb-cr{text-align:center;font-size:10px;color:#ccc;margin-top:6px}
+
+@media(max-width:430px){
+  :root{--bb-w:calc(100vw - 20px);--bb-h:73vh}
+  #bb-panel{right:10px;bottom:84px}
+  #bb-btn{right:14px;bottom:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- DEMO PAGE — remove when embedding -->
+<div class="demo">
+  <div class="demo-badge"><b></b> Live · Auto-Updated Nightly</div>
+  <div class="demo-hd">
+    <div class="demo-logo">
+      <svg width="27" height="27" viewBox="0 0 27 27" fill="none"><path d="M13.5 3C7.7 3 3 7.4 3 12.85c0 2.35.9 4.5 2.4 6.15L4.2 23.5l4.3-1.3a10.4 10.4 0 005 1.3c5.8 0 10.5-4.4 10.5-9.85S19.3 3 13.5 3z" fill="white"/></svg>
+    </div>
+    <div>
+      <div class="demo-org">Ministry of Jal Shakti · Government of India</div>
+      <div class="demo-name">Brahmaputra Board</div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Self-Updating AI Chatbot</h2>
+    <p>This widget reads from a <strong>GitHub-hosted FAQ database</strong> that is automatically refreshed every night via GitHub Actions + Cerebras AI. The bot scrapes brahmaputraboard.gov.in, extracts new Q&amp;A pairs, deduplicates, and commits the result — completely free, forever.</p>
+    <p>Click the <strong>blue button</strong> in the bottom-right corner to try it.</p>
+    <div class="pills">
+      <span class="pill">✦ Free Forever</span>
+      <span class="pill">✦ No API Keys in Widget</span>
+      <span class="pill">✦ Auto-Updated Nightly</span>
+      <span class="pill">✦ Smart Deduplication</span>
+      <span class="pill">✦ GitHub Actions Backend</span>
+      <span class="pill">✦ Cerebras AI Extraction</span>
+      <span class="pill">✦ ~16 KB Widget</span>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="font-size:17px;margin-bottom:9px">Embed in 3 steps</h2>
+    <p>1. Set <code>FAQS_URL</code> in the script to your GitHub raw faqs.json URL.</p>
+    <p>2. Paste the <code>&lt;style&gt;</code> block into <code>&lt;head&gt;</code>.</p>
+    <p>3. Paste <code>&lt;div id="bb-widget"&gt;</code> and the <code>&lt;script&gt;</code> before <code>&lt;/body&gt;</code>.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     WIDGET HTML — paste before </body>
+     ════════════════════════════════════════════════════════ -->
+<div id="bb-widget">
+
+  <button id="bb-btn" aria-label="Open Brahmaputra Board Assistant" aria-expanded="false">
+    <div id="bb-dot"></div>
+    <svg class="bic bic-chat" width="25" height="25" viewBox="0 0 25 25" fill="none">
+      <path d="M12.5 2C7 2 2.5 6.1 2.5 11.1c0 2.3.9 4.4 2.4 6l-1.4 4.4 4.3-1.3a10.6 10.6 0 004.7 1.1c5.5 0 10-4.1 10-9.1S18 2 12.5 2z" fill="white"/>
+    </svg>
+    <svg class="bic bic-close" width="19" height="19" viewBox="0 0 19 19" fill="none">
+      <path d="M14.5 4.5l-10 10M4.5 4.5l10 10" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <div id="bb-panel" role="dialog" aria-modal="true" aria-label="Brahmaputra Board Assistant">
+
+    <div id="bb-hd">
+      <div class="hav">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M8.5 1.5C5.19 1.5 2.5 3.86 2.5 6.75c0 1.6.73 3.04 1.9 4.03l-.9 3.22 3.36-1.01A7.4 7.4 0 008.5 13.5c3.31 0 6-2.36 6-5.25S11.81 1.5 8.5 1.5z" fill="white"/></svg>
+      </div>
+      <div id="bb-hi">
+        <div id="bb-hn">Brahmaputra Board Assistant</div>
+        <div id="bb-hs"><span class="sdot"></span><span id="bb-status">Loading knowledge base…</span></div>
+        <div id="bb-updated"></div>
+      </div>
+      <button id="bb-clr" title="Clear chat" aria-label="Clear conversation">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#86868b" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div id="bb-sq" style="display:none">
+      <!-- chips populated dynamically from FAQ data -->
+    </div>
+
+    <div id="bb-msgs" role="log" aria-live="polite">
+      <!-- Loading state -->
+      <div id="bb-loading">
+        <div class="bb-spinner"></div>
+        <p>Loading knowledge base…</p>
+      </div>
+      <!-- Error state -->
+      <div id="bb-err">
+        <p>⚠️ Could not load the knowledge base.<br>Please try again or visit<br><a href="https://brahmaputraboard.gov.in" target="_blank" rel="noopener" style="color:#0071e3">brahmaputraboard.gov.in</a></p>
+        <button id="bb-retry">Retry</button>
+      </div>
+      <!-- Welcome (shown after load) -->
+      <div id="bb-wl">
+        <div class="wico">
+          <svg width="25" height="25" viewBox="0 0 25 25" fill="none"><path d="M12.5 2C7 2 2.5 6.1 2.5 11.1c0 2.3.9 4.4 2.4 6l-1.4 4.4 4.3-1.3a10.6 10.6 0 004.7 1.1c5.5 0 10-4.1 10-9.1S18 2 12.5 2zM12 8h1.2v4.2l3.3 2-.6 1-4-2.4V8z" fill="white"/></svg>
+        </div>
+        <h3>Namaste! 🙏</h3>
+        <p>Ask me anything about the Brahmaputra Board.</p>
+      </div>
+    </div>
+
+    <div id="bb-ft">
+      <div id="bb-ir">
+        <textarea id="bb-in" placeholder="Ask about the Brahmaputra Board…" rows="1" aria-label="Type your question" disabled></textarea>
+        <button id="bb-snd" disabled aria-label="Send">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M12 6.5L1 1l2 5.5L1 12l11-5.5z" fill="white"/></svg>
+        </button>
+      </div>
+      <div id="bb-cr">Brahmaputra Board · Ministry of Jal Shakti · Govt. of India</div>
+    </div>
+
+  </div>
+</div>
+<!-- END WIDGET HTML -->
+
+<!-- ════════════════════════════════════════════════════════
+     WIDGET SCRIPT — paste just before </body>
+     ════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ─────────────────────────────────────────────────────────
+   CONFIG
+   Replace FAQS_URL with your GitHub raw content URL:
+   https://raw.githubusercontent.com/YOUR_ORG/YOUR_REPO/main/data/faqs.json
+   ───────────────────────────────────────────────────────── */
+var FAQS_URL = 'https://raw.githubusercontent.com/brahmaputra-board/chatbot/main/data/faqs.json';
+
+/* Fallback URL using jsDelivr CDN (better caching/CORS) — optional */
+var FAQS_URL_CDN = 'https://cdn.jsdelivr.net/gh/brahmaputra-board/chatbot@main/data/faqs.json';
+
+/* Similarity threshold for fuzzy FAQ matching (0–1) */
+var MATCH_THR = 0.18;
+
+/* ─────────────────────────────────────────────────────────
+   STATE
+   ───────────────────────────────────────────────────────── */
+var KB = [];       // loaded FAQ array
+var meta = {};     // meta from faqs.json
+var isOpen = false;
+
+/* ─────────────────────────────────────────────────────────
+   DOM REFS
+   ───────────────────────────────────────────────────────── */
+var btn     = document.getElementById('bb-btn');
+var panel   = document.getElementById('bb-panel');
+var msgs    = document.getElementById('bb-msgs');
+var loading = document.getElementById('bb-loading');
+var errDiv  = document.getElementById('bb-err');
+var welcome = document.getElementById('bb-wl');
+var inp     = document.getElementById('bb-in');
+var snd     = document.getElementById('bb-snd');
+var clr     = document.getElementById('bb-clr');
+var sqBar   = document.getElementById('bb-sq');
+var status  = document.getElementById('bb-status');
+var updated = document.getElementById('bb-updated');
+var retry   = document.getElementById('bb-retry');
+
+/* ─────────────────────────────────────────────────────────
+   LOAD FAQS FROM GITHUB
+   ───────────────────────────────────────────────────────── */
+function loadFAQs(url) {
+  loading.style.display = 'flex';
+  errDiv.style.display  = 'none';
+  welcome.style.display = 'none';
+
+  fetch(url + '?t=' + Date.now())   // cache-bust
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      KB   = data.faqs   || [];
+      meta = data.meta   || {};
+
+      loading.style.display = 'none';
+      welcome.style.display = 'flex';
+
+      status.textContent = 'Online · ' + KB.length + ' answers';
+
+      // Show last-updated
+      if (meta.last_updated) {
+        var d = new Date(meta.last_updated);
+        var fmt = d.toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+        updated.textContent = 'Updated ' + fmt;
+        updated.style.display = 'block';
+      }
+
+      // Enable input
+      inp.disabled = false;
+      snd.disabled = !inp.value.trim();
+      inp.placeholder = 'Ask about the Brahmaputra Board…';
+
+      // Build suggestion chips from first few unique topic FAQs
+      buildChips();
+    })
+    .catch(function(err) {
+      console.warn('Primary URL failed, trying CDN:', err);
+      if (url !== FAQS_URL_CDN) {
+        loadFAQs(FAQS_URL_CDN);
+      } else {
+        loading.style.display = 'none';
+        errDiv.style.display  = 'flex';
+        status.textContent    = 'Offline';
+        inp.placeholder       = 'Knowledge base unavailable…';
+      }
+    });
+}
+
+/* ─────────────────────────────────────────────────────────
+   BUILD SUGGESTION CHIPS
+   Pick 6 representative questions that span different topics
+   ───────────────────────────────────────────────────────── */
+var CHIP_QDEFS = [
+  'What is the Brahmaputra Board',
+  'flood control',
+  'NEHARI',
+  'RTI',
+  'contact',
+  'ongoing projects',
+  'tenders',
+  'jurisdiction'
+];
+
+function buildChips() {
+  sqBar.innerHTML = '';
+  var used = [];
+
+  CHIP_QDEFS.forEach(function(seed) {
+    var best = findBestMatch(seed);
+    if (!best) return;
+    // Don't duplicate
+    if (used.indexOf(best.question) !== -1) return;
+    used.push(best.question);
+
+    // Shorten label
+    var label = best.question.length > 30
+      ? best.question.substring(0, 28) + '…'
+      : best.question;
+
+    var b = document.createElement('button');
+    b.className   = 'sq';
+    b.textContent = label;
+    b.dataset.q   = best.question;
+    b.addEventListener('click', function(){
+      inp.value = this.dataset.q;
+      inp.dispatchEvent(new Event('input'));
+      send();
+    });
+    sqBar.appendChild(b);
+  });
+
+  sqBar.style.display = KB.length ? 'flex' : 'none';
+}
+
+/* ─────────────────────────────────────────────────────────
+   SEARCH / MATCHING ENGINE
+   Jaccard similarity on word tokens
+   ───────────────────────────────────────────────────────── */
+function tok(s) {
+  return new Set(s.toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(Boolean));
+}
+
+function jaccard(a, b) {
+  var ta = tok(a), tb = tok(b);
+  var inter = 0;
+  ta.forEach(function(w){ if(tb.has(w)) inter++; });
+  var union = ta.size + tb.size - inter;
+  return union ? inter / union : 0;
+}
+
+function scoreEntry(query, entry) {
+  // Score against question, also check a slice of answer
+  var qs = jaccard(query, entry.question);
+  var as = jaccard(query, entry.answer.substring(0, 120)) * 0.35;
+  return Math.max(qs, qs * 0.7 + as);
+}
+
+function findBestMatch(query) {
+  if (!KB.length) return null;
+  var best = null, bs = 0;
+  KB.forEach(function(e) {
+    var s = scoreEntry(query, e);
+    if (s > bs) { bs = s; best = e; }
+  });
+  return (bs >= MATCH_THR) ? best : null;
+}
+
+/* ─────────────────────────────────────────────────────────
+   TOGGLE
+   ───────────────────────────────────────────────────────── */
+function toggle() {
+  isOpen = !isOpen;
+  btn.classList.toggle('open', isOpen);
+  panel.classList.toggle('open', isOpen);
+  btn.setAttribute('aria-expanded', isOpen);
+  if (isOpen) setTimeout(function(){ if(!inp.disabled) inp.focus(); }, 380);
+}
+btn.addEventListener('click', toggle);
+document.addEventListener('click', function(e){
+  if(isOpen && !panel.contains(e.target) && !btn.contains(e.target)) toggle();
+});
+
+/* ─────────────────────────────────────────────────────────
+   INPUT
+   ───────────────────────────────────────────────────────── */
+inp.addEventListener('input', function(){
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 94) + 'px';
+  snd.disabled = !this.value.trim() || inp.disabled;
+});
+inp.addEventListener('keydown', function(e){
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); if(!snd.disabled) send(); }
+});
+snd.addEventListener('click', send);
+clr.addEventListener('click', function(){
+  // Remove all conversation bubbles but keep structural divs
+  Array.from(msgs.children).forEach(function(el){
+    if(!['bb-loading','bb-err','bb-wl'].includes(el.id)) el.remove();
+  });
+  welcome.style.display = 'flex';
+});
+retry.addEventListener('click', function(){ loadFAQs(FAQS_URL); });
+
+/* ─────────────────────────────────────────────────────────
+   SEND
+   ───────────────────────────────────────────────────────── */
+
+var GREETS = ['hi','hello','hey','namaste','namaskar','good morning','good afternoon','good evening','hiya','howdy'];
+var GREET_R = 'Namaste! 🙏 Welcome to the <strong>Brahmaputra Board Assistant</strong>.<br><br>I can help you with information about flood control, NEHARI, projects, RTI, tenders, contacts, and more.<br><br>What would you like to know?';
+
+var FALLS = [
+  'I couldn\'t find a specific answer to that. Please visit <a href="https://brahmaputraboard.gov.in" target="_blank" rel="noopener">brahmaputraboard.gov.in</a> or call <strong>0361-2300128</strong>.',
+  'For more details, check the official site: <a href="https://brahmaputraboard.gov.in" target="_blank" rel="noopener">brahmaputraboard.gov.in</a> or email <strong>secy-bbrd[at]gov[dot]in</strong>.',
+  'I don\'t have that specific information. Contact Brahmaputra Board HQ: 📞 <strong>0361-2300128</strong>, Guwahati.'
+];
+var fi = 0;
+
+function answer(q) {
+  var qn = q.trim().toLowerCase();
+
+  // Greeting check
+  for (var i = 0; i < GREETS.length; i++) {
+    if (qn === GREETS[i] || qn.startsWith(GREETS[i]+' ') || qn.endsWith(' '+GREETS[i]))
+      return { html: GREET_R, src: null };
+  }
+
+  var match = findBestMatch(q);
+  if (match) {
+    var html = esc(match.answer)
+      .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>')
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    var src = match.source && match.source !== 'seed'
+      ? '<span class="src">Source: <a href="'+esc(match.source)+'" target="_blank" rel="noopener">'+esc(match.source.replace('https://brahmaputraboard.gov.in','brahmaputraboard.gov.in'))+'</a></span>'
+      : '';
+    return { html: html + src, src: match.source };
+  }
+
+  return { html: FALLS[(fi++)%FALLS.length], src: null };
+}
+
+function send() {
+  var t = inp.value.trim();
+  if (!t || inp.disabled) return;
+
+  welcome.style.display = 'none';
+  addBubble('user', esc(t));
+
+  inp.value = ''; inp.style.height = 'auto'; snd.disabled = true;
+
+  var te = showTyping();
+  setTimeout(function(){
+    rem(te);
+    var res = answer(t);
+    addBubble('bot', res.html);
+  }, 70 + Math.random()*130);
+}
+
+/* ─────────────────────────────────────────────────────────
+   BUBBLE HELPERS
+   ───────────────────────────────────────────────────────── */
+var BOT_IC = '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1C3.01 1 1 2.68 1 4.75c0 1.03.44 1.97 1.16 2.66L1.5 9.5l2.62-.79A5.6 5.6 0 005.5 9c2.49 0 4.5-1.68 4.5-3.75S7.99 1 5.5 1z" fill="white"/></svg>';
+
+function addBubble(role, html) {
+  var row = document.createElement('div'); row.className = 'br ' + role;
+  if (role === 'bot') {
+    var av = document.createElement('div'); av.className = 'rav'; av.innerHTML = BOT_IC;
+    row.appendChild(av);
+  }
+  var b = document.createElement('div'); b.className = 'bb'; b.innerHTML = html;
+  row.appendChild(b);
+  msgs.appendChild(row);
+  requestAnimationFrame(function(){ msgs.scrollTop = msgs.scrollHeight; });
+}
+
+function showTyping() {
+  var row = document.createElement('div'); row.className = 'br bot';
+  var av = document.createElement('div'); av.className = 'rav'; av.innerHTML = BOT_IC;
+  var ty = document.createElement('div'); ty.className = 'ty';
+  ty.innerHTML = '<span></span><span></span><span></span>';
+  row.appendChild(av); row.appendChild(ty); msgs.appendChild(row);
+  requestAnimationFrame(function(){ msgs.scrollTop = msgs.scrollHeight; });
+  return row;
+}
+
+function rem(el){ if(el&&el.parentNode) el.parentNode.removeChild(el); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ─────────────────────────────────────────────────────────
+   INIT
+   ───────────────────────────────────────────────────────── */
+loadFAQs(FAQS_URL);
+
+})();
+</script>
+<!-- END WIDGET SCRIPT -->
+
+</body>
+</html>

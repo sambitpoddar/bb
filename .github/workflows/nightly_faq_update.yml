@@ -1,0 +1,86 @@
+name: Nightly FAQ Update
+
+on:
+  schedule:
+    # Runs at 01:30 AM IST (20:00 UTC) every night
+    - cron: "0 20 * * *"
+
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for manual run"
+        required: false
+        default: "Manual trigger"
+
+permissions:
+  contents: write   # needed to commit faqs.json back to repo
+
+jobs:
+  update-faqs:
+    name: Scrape & Update FAQs
+    runs-on: ubuntu-latest
+    timeout-minutes: 45        # hard cap — prevents runaway jobs
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 2. Python setup ────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # ── 3. Install dependencies ─────────────────────────────────────────
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install requests beautifulsoup4 cerebras-cloud-sdk
+
+      # ── 4. Run the scraper ─────────────────────────────────────────────
+      - name: Run FAQ scraper
+        env:
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+        run: |
+          python scripts/scrape_and_update.py
+
+      # ── 5. Commit updated faqs.json if changed ─────────────────────────
+      - name: Commit updated FAQs
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet data/faqs.json 2>/dev/null; then
+            echo "No changes to faqs.json — nothing to commit."
+          else
+            git add data/faqs.json
+            git commit -m "chore(data): nightly FAQ update $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+            echo "✅ faqs.json updated and pushed."
+          fi
+
+      # ── 6. Summary ─────────────────────────────────────────────────────
+      - name: Print summary
+        if: always()
+        run: |
+          echo "=== Run Summary ==="
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Reason:  ${{ github.event.inputs.reason || 'Scheduled' }}"
+          if [ -f data/faqs.json ]; then
+            python3 -c "
+          import json
+          with open('data/faqs.json') as f:
+              d = json.load(f)
+          m = d.get('meta', {})
+          print(f\"Last updated : {m.get('last_updated','?')}\")
+          print(f\"Total FAQs   : {m.get('total_faqs','?')}\")
+          print(f\"Pages scraped: {m.get('pages_scraped','?')}\")
+          print(f\"Added today  : {m.get('added_this_run','?')}\")
+          print(f\"Skipped dups : {m.get('skipped_this_run','?')}\")
+            "
+          fi
