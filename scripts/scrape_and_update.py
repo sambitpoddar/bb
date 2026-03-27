@@ -137,8 +137,7 @@ def crawl(base: str, max_pages: int) -> dict[str, str]:
 # ─── Cerebras AI extraction ──────────────────────────────────────────────────
 client = Cerebras(api_key=CEREBRAS_KEY)
 
-EXTRACT_PROMPT = """
-You are an information extraction assistant for the Brahmaputra Board,
+EXTRACT_PROMPT = """You are an information extraction assistant for the Brahmaputra Board,
 a Government of India statutory body under the Ministry of Jal Shakti.
 
 From the webpage text below, extract FAQ pairs that would be genuinely useful
@@ -157,16 +156,15 @@ Rules:
 
 Example format:
 [
-  {
+  {{
     "question": "What is the contact email of the Brahmaputra Board?",
     "answer": "The official email is secy-bbrd[at]gov[dot]in. You can also reach them at bbrd-ghy[at]nic[dot]in."
-  }
+  }}
 ]
 
 Webpage text:
-"""
+
 {text}
-"""
 """
 
 def extract_faqs_from_text(url: str, text: str) -> list[dict]:
