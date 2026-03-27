@@ -27,7 +27,7 @@ from cerebras.cloud.sdk import Cerebras
 # ─── Config ────────────────────────────────────────────────────────────────
 BASE_URL       = "https://brahmaputraboard.gov.in"
 OUTPUT_FILE    = "data/faqs.json"
-MODEL          = "llama-3.3-70b"          # Cerebras free tier model
+MODEL          = "gpt-oss-120b"          # Cerebras free tier model
 MAX_PAGES      = 60                        # safety cap on pages to crawl
 MIN_TEXT_LEN   = 120                       # skip pages with too little text
 REQUEST_DELAY  = 1.2                       # seconds between HTTP requests
