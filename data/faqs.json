@@ -6,7 +6,7 @@
     "added_this_run": 0,
     "skipped_this_run": 0,
     "source_site": "https://brahmaputraboard.gov.in",
-    "generator": "Cerebras/llama-3.3-70b"
+    "generator": "Cerebras/gpt-oss-120b"
   },
   "faqs": [
     {
