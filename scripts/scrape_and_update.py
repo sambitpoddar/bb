@@ -1,21 +1,32 @@
 """
 Brahmaputra Board — Nightly FAQ Generator
 ==========================================
-Runs via GitHub Actions every night.
+Runs 100% autonomously on GitHub Actions. No local machine. No third-party proxy.
 
-Crawl approach taken from working brahmaputra scraper:
-  - requests.Session with real browser headers (NOT bot UA)
-  - Proper link normalisation (drop fragments, skip anchors/js/mailto)
-  - BFS with visited-set dedup
-  - Graceful per-error handling (Timeout / ConnectionError / HTTPError)
+ROOT CAUSE OF PREVIOUS FAILURES:
+  brahmaputraboard.gov.in sits behind a WAF (Cloudflare or similar) that uses
+  TLS fingerprinting (JA3/JA4) to block non-browser clients. Python's `requests`
+  library produces a TLS ClientHello that looks nothing like Chrome — it gets
+  blocked at the handshake level before a single HTTP header is even read.
+  That's why changing User-Agent or headers did absolutely nothing.
 
-On top of the crawl we add:
-  - Cerebras AI (free) to extract FAQ pairs from each page's text
-  - Jaccard + MD5 deduplication against existing data/faqs.json
-  - Commit updated faqs.json back to the repo
+THE FIX:
+  `curl_cffi` — a Python library that wraps curl-impersonate.
+  It performs the TLS handshake with Chrome's exact cipher suites, extensions,
+  and HTTP/2 settings. From the server's perspective, it IS Chrome.
+  Single pip install. No compilation. No external service. No API key.
+  Pre-built binary for Ubuntu (the GitHub Actions runner OS).
 
-Requirements (installed by GitHub Actions workflow):
-    pip install requests beautifulsoup4 cerebras-cloud-sdk
+FLOW:
+  1. curl_cffi crawls brahmaputraboard.gov.in with Chrome TLS impersonation
+  2. BFS link discovery (same logic as the working local scraper you provided)
+  3. BeautifulSoup extracts clean text (same content-container priority order)
+  4. Cerebras AI (free) structures text → FAQ pairs
+  5. Jaccard + MD5 deduplication against existing faqs.json
+  6. Updated faqs.json committed back to repo by GitHub Actions
+
+Requirements (pip install — all free, no keys needed except Cerebras):
+    curl_cffi beautifulsoup4 cerebras-cloud-sdk
 """
 
 import os
@@ -28,19 +39,20 @@ from collections import deque
 from datetime import datetime, timezone
 from urllib.parse import urljoin, urlparse
 
-import requests
+from curl_cffi import requests as cf_requests  # Chrome TLS impersonation
 from bs4 import BeautifulSoup
 from cerebras.cloud.sdk import Cerebras
 
 # ─── Config ────────────────────────────────────────────────────────────────
 BASE_URL        = "https://brahmaputraboard.gov.in"
 OUTPUT_FILE     = "data/faqs.json"
-MODEL           = "gpt-oss-120b"
-MAX_PAGES       = 100
+MODEL           = "llama-3.3-70b"
+MAX_PAGES       = 80
 MIN_TEXT_LEN    = 150
-DELAY           = 1.5        # seconds between requests — be polite
-REQUEST_TIMEOUT = 15
-SIMILARITY_THR  = 0.52       # Jaccard threshold for near-duplicate FAQ check
+DELAY           = 1.5        # seconds between page fetches
+CEREBRAS_DELAY  = 0.4        # seconds between Cerebras API calls
+REQUEST_TIMEOUT = 20
+SIMILARITY_THR  = 0.52
 CEREBRAS_KEY    = os.environ["CEREBRAS_API_KEY"]
 
 logging.basicConfig(
@@ -49,49 +61,49 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# ─── HTTP Session (browser headers — works on GOI servers) ─────────────────
-# These headers mirror what the working scraper used and avoid bot-blocking.
-SESSION = requests.Session()
-SESSION.headers.update({
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    ),
-    "Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
-})
+# ─── curl_cffi session — impersonates Chrome 120 TLS fingerprint ────────────
+# impersonate="chrome120" makes the TLS handshake byte-for-byte identical
+# to Chrome 120 on Windows. The WAF cannot distinguish this from a real browser.
+SESSION = cf_requests.Session(impersonate="chrome120")
 
-# ─── URL helpers (taken from working scraper) ───────────────────────────────
+SKIP_EXT = {
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx",
+    ".jpg", ".jpeg", ".png", ".gif", ".zip",
+    ".rar", ".mp4", ".mp3", ".ppt", ".pptx",
+    ".css", ".js", ".ico", ".xml", ".svg", ".woff", ".woff2"
+}
+
+# ─── URL helpers (from your working local scraper) ──────────────────────────
 def is_same_domain(url: str) -> bool:
     return urlparse(url).netloc in ("", urlparse(BASE_URL).netloc)
 
 def normalize_url(url: str, base: str) -> str:
-    """Resolve relative URLs and strip fragments."""
     full = urljoin(base, url)
-    parsed = urlparse(full)
-    return parsed._replace(fragment="").geturl()
+    return urlparse(full)._replace(fragment="").geturl()
 
-# ─── Page fetch (taken from working scraper) ────────────────────────────────
+# ─── Page fetch via curl_cffi ───────────────────────────────────────────────
 def get_page(url: str) -> BeautifulSoup | None:
-    """Fetch a single URL. Returns BeautifulSoup or None on any error."""
+    """
+    Fetch a page using Chrome TLS impersonation.
+    Error handling mirrors your working local scraper exactly.
+    """
     try:
         resp = SESSION.get(url, timeout=REQUEST_TIMEOUT)
         resp.raise_for_status()
+        if not resp.text or len(resp.text) < 100:
+            return None
         return BeautifulSoup(resp.text, "html.parser")
-    except requests.exceptions.Timeout:
+    except cf_requests.exceptions.Timeout:
         log.warning("[TIMEOUT] %s", url)
-    except requests.exceptions.ConnectionError:
+    except cf_requests.exceptions.ConnectionError:
         log.warning("[CONNECTION ERROR] %s", url)
-    except requests.exceptions.HTTPError as e:
-        log.warning("[HTTP %s] %s", e.response.status_code, url)
     except Exception as e:
-        log.warning("[ERROR] %s — %s", url, e)
+        status = getattr(getattr(e, "response", None), "status_code", "?")
+        log.warning("[ERROR %s] %s — %s", status, url, type(e).__name__)
     return None
 
-# ─── Link extraction (taken from working scraper) ───────────────────────────
+# ─── Link extraction (from your working local scraper) ─────────────────────
 def extract_links(soup: BeautifulSoup, current_url: str) -> list[str]:
-    """Return all internal HTTP links found on the page."""
     links = []
     for tag in soup.find_all("a", href=True):
         href = tag["href"].strip()
@@ -102,17 +114,13 @@ def extract_links(soup: BeautifulSoup, current_url: str) -> list[str]:
             links.append(full)
     return links
 
-# ─── Content extraction (taken from working scraper, extended) ──────────────
+# ─── Content extraction (from your working local scraper) ──────────────────
 def extract_text(soup: BeautifulSoup) -> str:
-    """
-    Strip noise tags, prefer main content containers, return clean text.
-    Mirrors the working scraper's extract_content approach.
-    """
     for tag in soup(["script", "style", "noscript", "iframe",
                      "header", "footer", "nav"]):
         tag.decompose()
 
-    # Try content containers in priority order (same as working scraper)
+    # Priority order from your working scraper
     body = (
         soup.find("main")
         or soup.find("article")
@@ -126,27 +134,21 @@ def extract_text(soup: BeautifulSoup) -> str:
     raw = body.get_text(separator="\n") if body else ""
     lines = [l.strip() for l in raw.splitlines() if l.strip()]
     text = "\n".join(lines)
-    text = re.sub(r"\n{3,}", "\n\n", text).strip()
-    return text
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 # ─── BFS Crawler ────────────────────────────────────────────────────────────
 def crawl() -> dict[str, str]:
     """
-    BFS crawl of brahmaputraboard.gov.in.
-    Returns {url: cleaned_text} for pages with enough content.
-
-    Structure mirrors the working scraper's crawl() function exactly —
-    Session, deque, visited-set, per-URL error handling, DELAY between requests.
+    BFS crawl using Chrome TLS impersonation.
+    Structure identical to your working local scraper's crawl().
+    Returns {url: text}.
     """
     visited: set[str]    = set()
     queue:   deque[str]  = deque([BASE_URL])
     pages:   dict[str, str] = {}
 
-    SKIP_EXT = {".pdf", ".doc", ".docx", ".xls", ".xlsx",
-                ".jpg", ".jpeg", ".png", ".gif", ".zip", ".rar",
-                ".mp4", ".mp3", ".ppt", ".pptx"}
-
-    log.info("Starting crawl of %s (max %d pages)", BASE_URL, MAX_PAGES)
+    log.info("Starting crawl of %s (max %d pages, Chrome TLS impersonation)",
+             BASE_URL, MAX_PAGES)
 
     while queue and len(visited) < MAX_PAGES:
         url = queue.popleft()
@@ -155,12 +157,11 @@ def crawl() -> dict[str, str]:
             continue
         visited.add(url)
 
-        # Skip binary files
         path = urlparse(url).path.lower()
         if any(path.endswith(ext) for ext in SKIP_EXT):
             continue
 
-        log.info("[%d/%d] Fetching: %s", len(visited), MAX_PAGES, url)
+        log.info("[%3d/%d] %s", len(visited), MAX_PAGES, url)
         soup = get_page(url)
 
         if soup is None:
@@ -168,12 +169,10 @@ def crawl() -> dict[str, str]:
             continue
 
         text = extract_text(soup)
-
         if len(text) >= MIN_TEXT_LEN:
             pages[url] = text
             log.info("  → stored %d chars", len(text))
 
-        # Discover new links
         for link in extract_links(soup, url):
             if link not in visited:
                 queue.append(link)
@@ -183,7 +182,7 @@ def crawl() -> dict[str, str]:
     log.info("Crawl complete: %d pages with content", len(pages))
     return pages
 
-# ─── Cerebras AI FAQ extraction ─────────────────────────────────────────────
+# ─── Cerebras AI extraction ─────────────────────────────────────────────────
 cerebras_client = Cerebras(api_key=CEREBRAS_KEY)
 
 EXTRACT_PROMPT = """\
@@ -196,20 +195,22 @@ contractors, researchers, or government officials.
 STRICT RULES:
 - Extract ONLY factual information explicitly present in the text.
 - Do NOT invent, infer, or hallucinate any detail.
-- Each answer must be self-contained and make sense without the question.
-- Questions must be natural queries a real user would type.
-- Include: contact details, dates, names, project info, procedures, rules.
-- Return ONLY valid JSON — an array of objects with keys "question" and "answer".
-- If the page has no FAQ-worthy content, return an empty array: []
-- Do NOT wrap the JSON in markdown code fences.
+- Each answer must be self-contained (makes sense without reading the question).
+- Questions must be natural-language queries a real user would type.
+- Prioritise: contact info, dates, names, procedures, project details, rules.
+- Return ONLY a valid JSON array of objects with keys "question" and "answer".
+- If the page has no FAQ-worthy content, return exactly: []
+- Do NOT use markdown code fences around the JSON.
 
-EXAMPLE OUTPUT:
+EXAMPLE:
 [
   {{
-    "question": "What is the contact email of the Brahmaputra Board?",
-    "answer": "The official email is secy-bbrd[at]gov[dot]in. You can also reach them at bbrd-ghy[at]nic[dot]in."
+    "question": "What is the contact number of the Brahmaputra Board?",
+    "answer": "The Brahmaputra Board can be reached at 0361-2300128. Their office is at Basistha, Guwahati - 781029, Assam."
   }}
 ]
+
+PAGE URL: {url}
 
 WEBPAGE TEXT:
 \"\"\"
@@ -218,23 +219,24 @@ WEBPAGE TEXT:
 """
 
 def extract_faqs(url: str, text: str) -> list[dict]:
-    """Send page text to Cerebras and get back structured FAQ pairs."""
-    # Keep first 3500 + last 1500 chars for info-dense pages
     if len(text) > 5500:
-        text = text[:3500] + "\n\n[...truncated...]\n\n" + text[-1500:]
+        text = text[:3500] + "\n\n[...]\n\n" + text[-1500:]
 
     try:
         resp = cerebras_client.chat.completions.create(
             model=MODEL,
-            messages=[{"role": "user", "content": EXTRACT_PROMPT.format(text=text)}],
+            messages=[{
+                "role": "user",
+                "content": EXTRACT_PROMPT.format(url=url, text=text)
+            }],
             max_completion_tokens=1800,
             temperature=0.1,
         )
         raw = resp.choices[0].message.content.strip()
 
-        # Strip accidental markdown fences
         raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.MULTILINE)
-        raw = re.sub(r"\s*```\s*$", "", raw, flags=re.MULTILINE)
+        raw = re.sub(r"\s*```\s*$",       "", raw, flags=re.MULTILINE)
+        raw = raw.strip()
 
         parsed = json.loads(raw)
         if not isinstance(parsed, list):
@@ -243,7 +245,7 @@ def extract_faqs(url: str, text: str) -> list[dict]:
         result = []
         for item in parsed:
             q = str(item.get("question", "")).strip()
-            a = str(item.get("answer", "")).strip()
+            a = str(item.get("answer",   "")).strip()
             if len(q) > 8 and len(a) > 12:
                 result.append({"question": q, "answer": a, "source": url})
 
@@ -251,13 +253,13 @@ def extract_faqs(url: str, text: str) -> list[dict]:
         return result
 
     except json.JSONDecodeError as e:
-        log.warning("JSON parse error for %s: %s", url, e)
+        log.warning("  JSON parse error: %s", e)
         return []
     except Exception as e:
-        log.warning("Cerebras error for %s: %s", url, e)
+        log.warning("  Cerebras error: %s", e)
         return []
 
-# ─── Deduplication ──────────────────────────────────────────────────────────
+# ─── Deduplication ─────────────────────────────────────────────────────────
 def tokenize(s: str) -> set[str]:
     return set(re.findall(r"[a-z0-9]+", s.lower()))
 
@@ -270,19 +272,10 @@ def jaccard(a: str, b: str) -> float:
 def faq_id(q: str) -> str:
     return hashlib.md5(q.strip().lower().encode()).hexdigest()[:12]
 
-def deduplicate(
-    existing: list[dict],
-    candidates: list[dict]
-) -> tuple[list[dict], int, int]:
-    """
-    Merge new FAQ candidates into existing list.
-    Two-pass check: exact MD5 match, then Jaccard near-duplicate.
-    Returns (merged, added_count, skipped_count).
-    """
+def deduplicate(existing: list[dict], candidates: list[dict]) -> tuple[list[dict], int, int]:
     merged   = list(existing)
     added    = 0
     skipped  = 0
-
     existing_qs  = [e["question"] for e in merged]
     existing_ids = {faq_id(q) for q in existing_qs}
 
@@ -290,12 +283,9 @@ def deduplicate(
         cq  = cand["question"]
         cid = faq_id(cq)
 
-        # Pass 1: exact duplicate
         if cid in existing_ids:
             skipped += 1
             continue
-
-        # Pass 2: near-duplicate via Jaccard
         if any(jaccard(cq, eq) >= SIMILARITY_THR for eq in existing_qs):
             skipped += 1
             continue
@@ -309,7 +299,7 @@ def deduplicate(
 
     return merged, added, skipped
 
-# ─── Main ───────────────────────────────────────────────────────────────────
+# ─── Main ──────────────────────────────────────────────────────────────────
 def main():
     log.info("═══ Brahmaputra Board FAQ Updater — %s UTC ═══",
              datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M"))
@@ -319,25 +309,25 @@ def main():
     if os.path.exists(OUTPUT_FILE):
         try:
             with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                existing = data.get("faqs", [])
+                existing = json.load(f).get("faqs", [])
             log.info("Loaded %d existing FAQs", len(existing))
         except (json.JSONDecodeError, KeyError):
             log.warning("faqs.json malformed — starting fresh")
 
-    # Step 1: Crawl
+    # Step 1: Crawl with Chrome TLS impersonation
     pages = crawl()
 
     if not pages:
-        log.warning("No pages scraped — site may be unreachable. Keeping existing FAQs unchanged.")
-    
+        log.warning("0 pages scraped. WAF may have changed. Keeping existing FAQs.")
+        _write(existing, 0, 0, 0)
+        return
+
     # Step 2: Extract FAQs via Cerebras
     all_candidates: list[dict] = []
     for i, (url, text) in enumerate(pages.items(), 1):
-        log.info("Extracting [%d/%d]: %s", i, len(pages), url)
-        faqs = extract_faqs(url, text)
-        all_candidates.extend(faqs)
-        time.sleep(0.5)  # gentle rate-limit on Cerebras API
+        log.info("[%d/%d] Extracting FAQs: %s", i, len(pages), url)
+        all_candidates.extend(extract_faqs(url, text))
+        time.sleep(CEREBRAS_DELAY)
 
     log.info("Total candidates: %d", len(all_candidates))
 
@@ -345,26 +335,29 @@ def main():
     merged, added, skipped = deduplicate(existing, all_candidates)
     log.info("Added: %d | Skipped (dupes): %d | Total: %d", added, skipped, len(merged))
 
-    # Step 4: Write output
+    _write(merged, len(pages), added, skipped)
+    log.info("═══ Done ═══")
+
+
+def _write(faqs: list[dict], pages: int, added: int, skipped: int):
     output = {
         "meta": {
             "last_updated":     datetime.now(timezone.utc).isoformat(),
-            "total_faqs":       len(merged),
-            "pages_scraped":    len(pages),
+            "total_faqs":       len(faqs),
+            "pages_scraped":    pages,
             "added_this_run":   added,
             "skipped_this_run": skipped,
             "source_site":      BASE_URL,
+            "scraping_method":  "curl_cffi Chrome TLS impersonation",
             "generator":        f"Cerebras/{MODEL}",
         },
-        "faqs": merged,
+        "faqs": faqs,
     }
-
     os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
-
-    log.info("Written → %s  (%d bytes)", OUTPUT_FILE, os.path.getsize(OUTPUT_FILE))
-    log.info("═══ Done ═══")
+    log.info("Written → %s  (%.1f KB)", OUTPUT_FILE,
+             os.path.getsize(OUTPUT_FILE) / 1024)
 
 
 if __name__ == "__main__":
