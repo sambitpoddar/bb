@@ -1,3 +1,4 @@
 requests
 beautifulsoup4
 cerebras-cloud-sdk
+curl_cffi
